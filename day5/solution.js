@@ -44,4 +44,15 @@ const solutionOne = () => {
   console.log(`Solution 1: ${highestSeatId}`);
 };
 
+const solutionTwo = () => {
+  const seatIds = boardingPasses.map((boardingPass) => getSeatId(boardingPass));
+  seatIds.sort((a, b) => a - b);
+
+  const mySeatId =
+    seatIds.find((seatId, idx) => seatId - seatIds[idx - 1] === 2) - 1;
+
+  console.log(`Solution 2: ${mySeatId}`);
+};
+
 solutionOne();
+solutionTwo();
