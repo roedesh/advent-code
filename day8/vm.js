@@ -2,6 +2,10 @@ class VM {
   constructor(input) {
     this.instructions = input.split("\n").map(this._parseInputLine);
 
+    this._reset();
+  }
+
+  _reset() {
     this.programCounter = 0;
     this.accummulator = 0;
     this.seen = new Set();
@@ -22,15 +26,39 @@ class VM {
     if (opCode === "acc") this.accummulator += arg;
   }
 
+  _swapOpCode(opCode) {
+    return opCode === "jmp" ? "nop" : "jmp";
+  }
+
+  fixAndRunProgram() {
+    for (let i = 0; i < this.instructions.length; i++) {
+      const instruction = this.instructions[i];
+      const [opCode, arg] = instruction;
+
+      if (opCode === "acc") continue;
+
+      this.instructions[i] = [this._swapOpCode(opCode), arg];
+      const [exited, acc] = this.run();
+      if (exited) {
+        return [exited, acc];
+      }
+      this.instructions[i] = instruction;
+    }
+  }
+
   run() {
-    while (
-      !this.seen.has(this.programCounter) &&
-      this.programCounter < this.instructions.length
-    ) {
+    this._reset();
+    let exited = true;
+
+    while (this.programCounter < this.instructions.length) {
+      if (this.seen.has(this.programCounter)) {
+        exited = false;
+        break;
+      }
       this._parseInstruction();
     }
 
-    return [this.accummulator, this.programCounter];
+    return [exited, this.accummulator];
   }
 }
 
