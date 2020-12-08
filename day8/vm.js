@@ -1,39 +1,36 @@
 class VM {
   constructor(input) {
-    this.instructions = input.split("\n");
+    this.instructions = input.split("\n").map(this._parseInputLine);
 
     this.programCounter = 0;
-    this.pastProgramCounters = [];
     this.accummulator = 0;
+    this.seen = new Set();
   }
 
-  getOpCodeAndArg(instruction) {
-    const [opCode, arg] = instruction.split(" ");
-    return [opCode, parseInt(arg)];
+  _parseInputLine(inputLine) {
+    const [opCode, arg] = inputLine.split(" ");
+    return [opCode, +arg];
   }
 
-  parseInstruction() {
-    if (this.pastProgramCounters.includes(this.programCounter)) return true;
+  _parseInstruction() {
+    this.seen.add(this.programCounter);
+    const [opCode, arg] = this.instructions[this.programCounter];
 
-    this.pastProgramCounters.push(this.programCounter);
-    const instruction = this.instructions[this.programCounter];
-    const [opCode, arg] = this.getOpCodeAndArg(instruction);
+    this.programCounter++;
 
-    if (opCode === "jmp") this.programCounter += arg;
-    if (opCode === "acc") {
-      this.accummulator += arg;
-      this.programCounter++;
-    }
-    if (opCode === "nop") this.programCounter++;
-
-    return false;
+    if (opCode === "jmp") this.programCounter += -1 + arg;
+    if (opCode === "acc") this.accummulator += arg;
   }
 
   run() {
-    let terminated = false;
-    while (!terminated) {
-      terminated = this.parseInstruction();
+    while (
+      !this.seen.has(this.programCounter) &&
+      this.programCounter < this.instructions.length
+    ) {
+      this._parseInstruction();
     }
+
+    return [this.accummulator, this.programCounter];
   }
 }
 
